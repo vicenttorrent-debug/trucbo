@@ -1,0 +1,749 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#12301f">
+<title>Truc de la Colla</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;600;800&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+/* Layout: una taula de tapet a pantalla completa; marcador de pedres dalt, rivals als costats, company davant, la teua mà baix. */
+:root{
+  --felt:#1d4a37; --felt-hi:#24593f; --felt-deep:#12301f;
+  --rail:#4a2a1a; --chalk:#f1ece0; --chalk-dim:#b9c7b8;
+  --card:#f6efdf; --card-edge:#cbbf9f; --ink:#221d17;
+  --oros:#b8820c; --copes:#b0261f; --espases:#2b4f8e; --bastos:#3c6a28;
+  --us:#f0c04a; --them:#ec8a6a; --back1:#8c1f1a; --back2:#a8302a;
+  --btn:#f1ece0; --btn-ink:#1a2a20; --hot:#f0c04a;
+  --f-display:"Young Serif", Georgia, "Times New Roman", serif;
+  --f-body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--felt-deep);color:var(--chalk);font-family:var(--f-body);margin:0;overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column;max-width:720px;margin:0 auto;padding-inline:16px;box-sizing:border-box;
+  background:radial-gradient(120% 80% at 50% 45%,var(--felt-hi),var(--felt) 55%,var(--felt-deep));}
+button{font-family:var(--f-body);cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--hot);outline-offset:2px}
+
+/* Marcador */
+.score{display:flex;align-items:center;gap:10px;padding-block:10px 6px;border-bottom:1px solid rgba(241,236,224,.12)}
+.teams{flex:1;display:grid;gap:4px;min-width:0}
+.trow{display:grid;grid-template-columns:76px 1fr auto;align-items:center;gap:8px}
+.tname{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tname.us{color:var(--us)} .tname.them{color:var(--them)}
+.stones{display:flex;flex-wrap:wrap;gap:3px;min-width:0}
+.stone{width:9px;height:9px;border-radius:50% 45% 55% 50%;background:rgba(241,236,224,.13)}
+.stone.on.us{background:var(--us)} .stone.on.them{background:var(--them)}
+.stone.gap{margin-left:5px}
+.tnum{font-family:var(--f-display);font-size:18px;font-variant-numeric:tabular-nums;min-width:52px;text-align:right}
+.tnum small{font-family:var(--f-body);font-size:11px;color:var(--chalk-dim);margin-left:3px}
+.iconbtn{background:none;border:1px solid rgba(241,236,224,.25);color:var(--chalk);border-radius:8px;padding:6px 10px;font-size:13px;font-weight:600}
+
+/* Taula */
+.table{flex:1;min-height:0;display:grid;grid-template-columns:minmax(64px,1fr) minmax(150px,1.6fr) minmax(64px,1fr);
+  grid-template-rows:auto 1fr auto;grid-template-areas:". top ." "left mid right" ". bot .";gap:6px;padding-block:8px;position:relative}
+.seat{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;min-width:0}
+.seat.top{grid-area:top} .seat.left{grid-area:left;justify-content:center} .seat.right{grid-area:right;justify-content:center} .seat.bot{grid-area:bot}
+.tag{display:flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;background:rgba(0,0,0,.25);max-width:100%;box-sizing:border-box}
+.tag .nm{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.dot.us{background:var(--us)} .dot.them{background:var(--them)}
+.seat.turn .tag{box-shadow:0 0 0 2px var(--hot)}
+.badges{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.badge{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--chalk-dim);border:1px solid rgba(241,236,224,.25);border-radius:4px;padding:1px 5px}
+.backs{display:flex}
+.backs .card{margin-left:-14px} .backs .card:first-child{margin-left:0}
+.bubble{position:absolute;z-index:5;top:-6px;left:50%;transform:translate(-50%,-100%);background:var(--chalk);color:var(--btn-ink);
+  font-family:var(--f-display);font-size:18px;padding:6px 12px;border-radius:12px;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.35);animation:pop .25s ease-out}
+.seat.top .bubble{top:auto;bottom:-6px;transform:translate(-50%,100%)}
+@keyframes pop{from{transform:translate(-50%,-80%) scale(.7);opacity:0}}
+
+.mid{grid-area:mid;position:relative;border-radius:50%;min-height:150px}
+.slot{position:absolute;transform:translate(-50%,-50%)}
+.slot.b{left:50%;top:76%} .slot.t{left:50%;top:24%} .slot.l{left:22%;top:50%} .slot.r{left:78%;top:50%}
+.slot.dim{opacity:.55}
+.slot.win .card{box-shadow:0 0 0 3px var(--hot),0 4px 10px rgba(0,0,0,.35)}
+.pips{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:6px}
+.pip{width:14px;height:14px;border-radius:50%;border:2px solid rgba(241,236,224,.35);box-sizing:border-box}
+.pip.us{background:var(--us);border-color:var(--us)} .pip.them{background:var(--them);border-color:var(--them)}
+.pip.p{background:repeating-linear-gradient(45deg,var(--chalk-dim) 0 2px,transparent 2px 4px);border-color:var(--chalk-dim)}
+.stakes{position:absolute;left:50%;bottom:-2px;transform:translateX(-50%);font-size:11px;color:var(--chalk-dim);white-space:nowrap;font-weight:600}
+
+/* Cartes */
+.card{--cw:68px;width:var(--cw);aspect-ratio:2/3;background:var(--card);border-radius:calc(var(--cw)*.1);border:1px solid var(--card-edge);
+  box-shadow:0 3px 8px rgba(0,0,0,.35);position:relative;color:var(--ink);box-sizing:border-box;flex:none;max-width:100%}
+.card.sm{--cw:46px} .card.xs{--cw:26px} .card.md{--cw:56px}
+.card .r{position:absolute;left:8%;top:4%;font-family:var(--f-display);font-size:calc(var(--cw)*.3);line-height:1}
+.card .r2{left:auto;top:auto;right:8%;bottom:4%;transform:rotate(180deg)}
+.card svg{position:absolute;left:50%;top:52%;width:56%;height:56%;transform:translate(-50%,-50%)}
+.card.o{color:var(--oros)} .card.c{color:var(--copes)} .card.e{color:var(--espases)} .card.b{color:var(--bastos)}
+.card.back{background:repeating-linear-gradient(45deg,var(--back1) 0 4px,var(--back2) 4px 8px);border:3px solid var(--card)}
+.card.xs.back{border-width:2px}
+.card .r.top-star{font-size:calc(var(--cw)*.22)}
+
+/* La meua mà */
+.dock{padding-block:6px 14px;display:flex;flex-direction:column;gap:10px}
+.status{text-align:center;font-size:14px;min-height:20px;color:var(--chalk)}
+.status b{color:var(--hot)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.btn{border:none;border-radius:10px;padding:10px 14px;font-size:15px;font-weight:800;background:var(--btn);color:var(--btn-ink);min-height:42px}
+.btn.call{font-family:var(--f-display);font-weight:400;font-size:17px;background:var(--hot)}
+.btn.no{background:transparent;color:var(--chalk);border:1.5px solid rgba(241,236,224,.5)}
+.btn.ghost{background:rgba(0,0,0,.25);color:var(--chalk);font-weight:600}
+.btn:disabled{opacity:.4;cursor:default}
+.myhand{display:flex;gap:10px;justify-content:center;min-height:102px;align-items:flex-end}
+.myhand .card{--cw:70px;transition:transform .15s}
+.myhand button.cardbtn{background:none;border:none;padding:0;border-radius:8px}
+.myhand button.cardbtn:not(:disabled):hover .card,.myhand button.cardbtn:not(:disabled):focus-visible .card{transform:translateY(-8px)}
+.myhand.live .card{box-shadow:0 0 0 2px var(--hot),0 4px 10px rgba(0,0,0,.4)}
+.myhand button:disabled{cursor:default}
+
+/* Fulls (sala, resum, senyes, menú) */
+.sheet{position:absolute;inset:auto 0 0 0;z-index:20;max-height:88%;overflow:auto;background:var(--chalk);color:var(--btn-ink);
+  border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 30px rgba(0,0,0,.4)}
+.shade{position:absolute;inset:0;z-index:19;background:rgba(0,0,0,.45)}
+.wrap{position:relative;height:100%}
+.sheet h2{font-family:var(--f-display);font-weight:400;font-size:24px;margin:0 0 4px;text-wrap:balance}
+.sheet h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin:16px 0 6px;color:#5b6b5f}
+.sheet p{margin:6px 0;line-height:1.45;font-size:14px;max-width:62ch}
+.sheet .btn{background:var(--felt);color:var(--chalk)}
+.sheet .btn.no{color:var(--btn-ink);border-color:rgba(26,42,32,.4);background:transparent}
+.sheet .btn.call{background:var(--hot);color:var(--btn-ink)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.seats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.pair{border-radius:12px;padding:10px;display:grid;gap:8px;background:#e6e0d1}
+.pair h4{margin:0;font-size:12px;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.sl{display:flex;align-items:center;justify-content:space-between;gap:6px;background:#fffaf0;border-radius:8px;padding:8px;min-height:40px}
+.sl .nm{font-weight:600;font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sl .free{color:#7b857c;font-style:italic}
+.sl .btn{padding:6px 10px;min-height:32px;font-size:13px}
+label.f{display:grid;gap:4px;font-size:12px;font-weight:600;color:#4c5a50}
+input.t,select.t{font:inherit;font-size:15px;padding:8px 10px;border-radius:8px;border:1px solid #b9b3a3;background:#fffaf0;color:var(--btn-ink);min-width:0}
+.note{font-size:12.5px;color:#4c5a50;background:#e6e0d1;border-radius:10px;padding:10px 12px;line-height:1.45}
+.signs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.sign{display:grid;gap:2px;text-align:left;background:#fffaf0;border:1px solid #d6cfbd;border-radius:10px;padding:10px;color:var(--btn-ink)}
+.sign .g{font-size:22px} .sign .t1{font-weight:800;font-size:14px} .sign .t2{font-size:12px;color:#5b6b5f}
+.summary{display:grid;gap:8px;margin:10px 0}
+.sline{display:flex;justify-content:space-between;gap:10px;font-size:14px;border-bottom:1px dashed #cfc8b6;padding-bottom:6px}
+.sline b{font-variant-numeric:tabular-nums}
+.reveal{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rv{background:#e6e0d1;border-radius:10px;padding:8px;display:grid;gap:6px;min-width:0}
+.rv .who{font-size:12px;font-weight:700;display:flex;justify-content:space-between;gap:4px}
+.rv .cs{display:flex;gap:4px}
+.order{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}
+.order .gt{font-size:12px;color:#7b857c}
+.toast{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:50;background:var(--ink);color:var(--chalk);
+  padding:10px 14px;border-radius:12px;font-size:14px;max-width:min(92vw,520px);box-shadow:0 8px 24px rgba(0,0,0,.4);border:1px solid rgba(241,236,224,.2)}
+.toast.sig{background:var(--hot);color:var(--btn-ink);font-weight:700}
+.empty{margin:auto;text-align:center;max-width:34ch;line-height:1.5}
+.empty h1{font-family:var(--f-display);font-weight:400;font-size:34px;margin:0 0 6px}
+.startpg{height:100%;overflow:auto;display:flex;flex-direction:column;gap:18px;padding-block:28px 24px}
+.hero h1{font-family:var(--f-display);font-weight:400;font-size:44px;margin:0}
+.hero p{margin:6px 0 0;max-width:40ch;line-height:1.5;color:var(--chalk-dim)}
+.startsheet{position:static;border-radius:18px;max-height:none;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.invite{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:#e6e0d1;border-radius:12px;padding:10px 12px;margin-top:8px}
+.invite .code{font-family:var(--f-display);font-size:30px;letter-spacing:.18em}
+.linktxt{font-size:12px;color:#5b6b5f;word-break:break-all;user-select:all;margin:6px 0 0}
+.conn{text-align:center;font-size:13px;background:rgba(0,0,0,.3);border-radius:8px;padding:6px 10px;margin-top:6px}
+.badge.off{color:var(--them);border-color:var(--them)}
+.empty .btn{margin-top:8px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:420px){
+  .trow{grid-template-columns:62px 1fr auto}
+  .card.sm{--cw:40px}
+  .myhand .card{--cw:64px}
+  .stone{width:8px;height:8px}
+}
+</style>
+
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="s-o" viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="currentColor"/><circle cx="20" cy="20" r="10" fill="none" stroke="#f6efdf" stroke-width="2.5"/><circle cx="20" cy="20" r="3.5" fill="#f6efdf"/></symbol>
+    <symbol id="s-c" viewBox="0 0 40 40"><path d="M7 6H33C33 19 27 24 20 24C13 24 7 19 7 6Z" fill="currentColor"/><rect x="17.5" y="23" width="5" height="8" fill="currentColor"/><ellipse cx="20" cy="33.5" rx="10" ry="3.5" fill="currentColor"/><path d="M11 10H29" stroke="#f6efdf" stroke-width="2"/></symbol>
+    <symbol id="s-e" viewBox="0 0 40 40"><path d="M20 1L23.5 8V27H16.5V8Z" fill="currentColor"/><rect x="8" y="26.5" width="24" height="4" rx="2" fill="currentColor"/><rect x="17.8" y="30" width="4.4" height="6" fill="currentColor"/><circle cx="20" cy="37.2" r="2.6" fill="currentColor"/><path d="M20 6V25" stroke="#f6efdf" stroke-width="1.2"/></symbol>
+    <symbol id="s-b" viewBox="0 0 40 40"><path d="M13 5C19 0 28 2 27.5 9L24 36C23.6 39 18.4 39 18 36L12.5 11C12 8 11.8 6 13 5Z" fill="currentColor"/><circle cx="19" cy="11" r="1.8" fill="#f6efdf"/><circle cx="22" cy="19" r="1.6" fill="#f6efdf"/><circle cx="20" cy="27" r="1.5" fill="#f6efdf"/></symbol>
+  </defs>
+</svg>
+
+<div id="app"><div class="empty"><h1>Truc</h1><p>Preparant la taula…</p></div></div>
+
+<script>
+window.__trucErr=function(msg){var a=document.getElementById('app');if(!a)return;a.innerHTML='<div class="empty"><h1>Truc</h1><p>'+msg+'</p></div>';};
+window.addEventListener('error',function(e){
+  var p=location.protocol;
+  if(p!=='https:'&&p!=='http:'){window.__trucErr("Aquesta app s'ha d'obrir des d'una adreça web (https://...). Des de la vista prèvia o com a fitxer no pot connectar amb els altres mòbils.");return;}
+  if(window.__trucReady)return;
+  window.__trucErr("Hi ha hagut un error en carregar l'app: "+String(e.message||'desconegut')+". Torna a carregar la pàgina.");
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js" crossorigin="anonymous"></script>
+<script>
+/* ===== LÒGICA DEL JOC (pura) ===== */
+const SUITN={o:'oros',c:'copes',e:'espases',b:'bastos'};
+const TRUC=['','Truc','Retruc','Quatre val','Joc fora'];
+const TRUC_SHOUT=['','Truc!','Retruc!','Quatre val!','Joc fora!'];
+const ENV=['','Envit','Torne','Falta'];
+const ENV_SHOUT=['','Envide!','Torne!','La falta!'];
+const team=s=>s%2;
+const rk=c=>parseInt(c,10);
+const su=c=>c.slice(-1);
+function deck(){const d=[];for(const s of 'oceb')for(const r of [3,4,5,6,7])d.push(r+s);d.push('1e','1b');return d;}
+function power(c){
+  if(c==='1e')return 14; if(c==='1b')return 13; if(c==='7e')return 12; if(c==='7o')return 11;
+  const r=rk(c); return r===3?10:r===7?9:r===6?8:r===5?7:6;
+}
+function envitOf(cards){
+  const by={};cards.forEach(c=>{(by[su(c)]=by[su(c)]||[]).push(rk(c));});
+  let best=0;for(const k in by){const v=by[k].sort((a,b)=>b-a);const val=v.length>=2?20+v[0]+v[1]:v[0];if(val>best)best=val;}
+  return best;
+}
+function rint(n){try{const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%n;}catch(e){return Math.floor(Math.random()*n);}}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=rint(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;}
+const rid=()=>Math.random().toString(36).slice(2,10);
+
+function freshGame(){return {v:0,seats:[null,null,null,null],nicks:['','','',''],cfg:{pedres:12,cames:2},phase:'lobby',score:{p:[0,0],c:[0,0]},dealer:3,hand:null,shout:null,winner:null};}
+function shout(st,seat,text){st.shout={seat,text,n:((st.shout&&st.shout.n)||0)+1};}
+
+function startHand(st){
+  st.dealer=(st.dealer+1)%4; const ma=(st.dealer+1)%4; const d=shuffle(deck());
+  const cards={},dealt={};
+  for(let i=0;i<4;i++){const s=(ma+i)%4;cards[s]=d.slice(i*3,i*3+3);dealt[s]=cards[s].slice();}
+  st.hand={id:rid(),ma,cards,dealt,tricks:[{lead:ma,plays:[]}],results:[],turn:ma,
+    truc:{level:0,holder:null},envit:{state:'none',level:0,pts:0,team:null},pending:null,saved:null,summary:null};
+  st.phase='playing'; st.winner=null; return st;
+}
+function playedFirst(h,s){return h.tricks[0].plays.some(p=>p.seat===s);}
+function canEnvit(h,s){return h.tricks.length===1&&!playedFirst(h,s)&&h.envit.state==='none';}
+function canTruc(h,s){return h.truc.level<4&&(h.truc.holder===null||h.truc.holder===team(s));}
+
+function decide(r,ma){
+  if(r.length>=2){
+    if(r[0]!=='p'&&(r[1]===r[0]||r[1]==='p'))return r[0];
+    if(r[0]==='p'&&r[1]!=='p')return r[1];
+  }
+  if(r.length===3){ if(r[2]!=='p')return r[2]; if(r[0]!=='p')return r[0]; return team(ma); }
+  return null;
+}
+function addPts(st,t,n){st.score.p[t]+=n;if(st.score.p[t]>=st.cfg.pedres){st.score.c[t]++;st.score.p=[0,0];return true;}return false;}
+function endHand(st,winT,refusedPts){
+  const h=st.hand,target=st.cfg.pedres,lead=Math.max(st.score.p[0],st.score.p[1]);
+  const sum={handTeam:winT,trucPts:0,trucLevel:h.truc.level,trucRefused:refusedPts!=null,trucApplied:true,env:null,cama:null,before:st.score.p.slice()};
+  let camaT=null;
+  if(h.envit.state==='accepted'){
+    const order=[0,1,2,3].map(i=>(h.ma+i)%4),vals={};order.forEach(s=>{vals[s]=envitOf(h.dealt[s]);});
+    let bs=order[0];order.forEach(s=>{if(vals[s]>vals[bs])bs=s;});
+    const t=team(bs),pts=h.envit.level===1?2:h.envit.level===2?4:Math.max(1,target-lead);
+    sum.env={team:t,pts,seat:bs,vals,accepted:true,level:h.envit.level};
+    if(addPts(st,t,pts))camaT=t;
+  }else if(h.envit.state==='refused'){
+    sum.env={team:h.envit.team,pts:h.envit.pts,accepted:false,level:h.envit.level};
+    if(addPts(st,h.envit.team,h.envit.pts))camaT=h.envit.team;
+  }
+  if(camaT===null){
+    let n;
+    if(refusedPts!=null)n=refusedPts;
+    else if(h.truc.level===4)n=Math.max(1,target-st.score.p[winT]);
+    else n=[1,2,3,4][h.truc.level];
+    sum.trucPts=n; if(addPts(st,winT,n))camaT=winT;
+  }else sum.trucApplied=false;
+  sum.cama=camaT;
+  if(camaT!==null&&st.score.c[camaT]>=st.cfg.cames){st.phase='gameEnd';st.winner=camaT;}else st.phase='handEnd';
+  h.summary=sum;h.pending=null;h.saved=null;h.turn=-1;
+  return st;
+}
+function playCard(st,seat,card){
+  const h=st.hand;
+  if(st.phase!=='playing'||!h)return 'Ara no es pot tirar.';
+  if(h.pending)return 'Primer cal respondre l\'aposta.';
+  if(h.turn!==seat)return 'No et toca.';
+  const mine=h.cards[seat],i=mine.indexOf(card); if(i<0)return 'Eixa carta no és teua.';
+  mine.splice(i,1);
+  const tr=h.tricks[h.tricks.length-1]; tr.plays.push({seat,card});
+  if(tr.plays.length<4){h.turn=(seat+1)%4;return st;}
+  const max=Math.max(...tr.plays.map(p=>power(p.card)));
+  const top=tr.plays.filter(p=>power(p.card)===max);
+  const first=top[0].seat; const res=top.every(p=>team(p.seat)===team(first))?team(first):'p';
+  tr.res=res;tr.best=first;h.results.push(res);
+  const w=decide(h.results,h.ma);
+  if(w!==null)return endHand(st,w,null);
+  h.tricks.push({lead:first,plays:[]});h.turn=first;return st;
+}
+function callTruc(st,seat){
+  const h=st.hand;
+  if(st.phase!=='playing'||!h||h.pending||h.turn!==seat)return 'Ara no pots trucar.';
+  if(!canTruc(h,seat))return 'Ara no et toca pujar el truc.';
+  h.pending={kind:'truc',level:h.truc.level+1,by:team(seat),seat};
+  shout(st,seat,TRUC_SHOUT[h.pending.level]);return st;
+}
+function callEnvit(st,seat,level){
+  const h=st.hand;
+  if(st.phase!=='playing'||!h||h.pending||h.turn!==seat)return 'Ara no pots envidar.';
+  if(!canEnvit(h,seat))return 'L\'envit només es pot cantar en la primera baza, abans de tirar.';
+  h.pending={kind:'envit',level,by:team(seat),seat,prevVal:1};
+  shout(st,seat,ENV_SHOUT[level]);return st;
+}
+function respond(st,seat,resp,arg){
+  const h=st.hand,p=h&&h.pending;
+  if(st.phase!=='playing'||!p)return 'No hi ha cap aposta per respondre.';
+  if(team(seat)===p.by)return 'Ha de respondre l\'altra parella.';
+  const T=team(seat);
+  if(resp==='vull'){
+    shout(st,seat,'Vull!');
+    if(p.kind==='truc'){h.truc.level=p.level;h.truc.holder=T;h.pending=null;}
+    else{h.envit.state='accepted';h.envit.level=p.level;h.pending=h.saved;h.saved=null;}
+    return st;
+  }
+  if(resp==='novull'){
+    shout(st,seat,'No vull');
+    if(p.kind==='truc')return endHand(st,p.by,p.level);
+    h.envit.state='refused';h.envit.level=p.level;h.envit.team=p.by;h.envit.pts=p.prevVal;
+    h.pending=h.saved;h.saved=null;return st;
+  }
+  if(resp==='raise'){
+    if(p.kind==='truc'){
+      if(p.level>=4)return 'Ja no es pot pujar més.';
+      h.truc.level=p.level;h.pending={kind:'truc',level:p.level+1,by:T,seat};
+      shout(st,seat,TRUC_SHOUT[p.level+1]);return st;
+    }
+    const nl=arg; if(!(nl>p.level&&nl<=3))return 'Eixa pujada no és vàlida.';
+    h.pending={kind:'envit',level:nl,by:T,seat,prevVal:p.level===1?2:4};
+    shout(st,seat,ENV_SHOUT[nl]);return st;
+  }
+  if(resp==='envit'){
+    if(p.kind!=='truc'||p.level!==1||h.saved||!canEnvit(h,seat))return 'Ara no pots envidar.';
+    h.saved=p;h.pending={kind:'envit',level:arg||1,by:T,seat,prevVal:1};
+    shout(st,seat,'L\'envit va primer! '+ENV_SHOUT[arg||1]);return st;
+  }
+  return 'Resposta desconeguda.';
+}
+/* ===== FI LÒGICA ===== */
+</script>
+
+<script>
+/* ===== INTERFÍCIE I XARXA (sense comptes: PeerJS, l'amfitrió porta la partida) ===== */
+const SIGNS=[
+  {k:'amo',g:'🤨',t:'L\'amo',d:'As d\'espases · alçar les celles'},
+  {k:'bastot',g:'😉',t:'El bastot',d:'As de bastos · fer l\'ullet'},
+  {k:'me',g:'😜',t:'Manilla d\'espases',d:'Set d\'espases · llengua a la dreta'},
+  {k:'mo',g:'😛',t:'Manilla d\'oros',d:'Set d\'oros · llengua a l\'esquerra'},
+  {k:'tres',g:'😬',t:'Un tres',d:'Mossegar-se el llavi'},
+  {k:'res',g:'😑',t:'No tinc res',d:'Tancar els ulls'},
+  {k:'env',g:'😮‍💨',t:'Tinc bon envit',d:'Inflar les galtes'},
+  {k:'envida',g:'🙂',t:'Envida!',d:'Assentir amb el cap'},
+  {k:'truca',g:'👊',t:'Truca!',d:'Picar a la taula'},
+  {k:'no',g:'🙅',t:'No vulgues',d:'Negar amb el cap'},
+];
+const PREFIX='truc-colla-vlc-';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ls={get(k){try{return localStorage.getItem(k);}catch(e){return null;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){}},del(k){try{localStorage.removeItem(k);}catch(e){}}};
+
+let mode='start';           // start | host | client
+let state=null;             // la vista que veu aquest dispositiu
+let conn=null, peer=null, code='', myName=ls.get('truc-name')||'', connMsg='', retryTimer=null;
+let sheet=null, toastTimer=null, bubble=null, lastShoutN=null;
+// només a l'amfitrió
+let G=null, players={}, HOST_TOKEN='amfitrio';
+
+function cardHTML(c,size){
+  if(!c)return `<div class="card back ${size||''}"></div>`;
+  const r=rk(c),s=su(c);
+  return `<div class="card ${s} ${size||''}" role="img" aria-label="${r===1?'As':r} de ${SUITN[s]}"><span class="r">${r}</span><svg><use href="#s-${s}"/></svg><span class="r r2">${r}</span></div>`;
+}
+function toast(msg,cls){
+  let t=$('#toast'); if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t);}
+  t.className='toast '+(cls||''); t.textContent=msg; t.hidden=false;
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>{t.hidden=true;},cls==='sig'?4200:3000);
+}
+const rcode=()=>{const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<5;i++)s+=a[rint(a.length)];return s;};
+
+/* ---------- AMFITRIÓ ---------- */
+function viewFor(token){
+  const st=JSON.parse(JSON.stringify(G));
+  const mine=G.seats.map((u,i)=>u===token?i:-1).filter(i=>i>=0);
+  st.mine=mine;
+  st.online=G.seats.map(u=>!!u&&(u===HOST_TOKEN||!!(players[u]&&players[u].open)));
+  st.seats=G.seats.map((u,i)=>u?'j'+i:null);
+  if(st.hand){
+    const h=st.hand;
+    for(const s of [0,1,2,3]){ if(!mine.includes(s)) h.cards[s]=(h.cards[s]||[]).map(()=>null); }
+    if(!(G.phase==='handEnd'||G.phase==='gameEnd'))h.dealt={};
+  }
+  return st;
+}
+function broadcast(){
+  for(const tk in players){const p=players[tk];if(p.open&&p.conn){try{p.conn.send({t:'state',st:viewFor(tk)});}catch(e){}}}
+  onView(viewFor(HOST_TOKEN));
+  ls.set('truc-host',JSON.stringify({code,G,names:Object.fromEntries(Object.entries(players).map(([k,v])=>[k,v.name]))}));
+}
+function sendTo(token,msg){
+  if(token===HOST_TOKEN){hostLocal(msg);return;}
+  const p=players[token]; if(p&&p.open&&p.conn){try{p.conn.send(msg);}catch(e){}}
+}
+function hostLocal(msg){ if(msg.t==='err')toast(msg.msg); if(msg.t==='sign')showSign(msg); }
+function owns(token,s){return s>=0&&s<4&&G.seats[s]===token;}
+function handle(token,m){
+  if(!m||typeof m!=='object')return;
+  if(m.t==='sign'){
+    if(!owns(token,m.seat)||!G.hand)return;
+    const pt=G.seats[(m.seat+2)%4]; if(pt)sendTo(pt,{t:'sign',from:m.seat,k:String(m.k)});
+    return;
+  }
+  if(m.t!=='act')return;
+  const name=token===HOST_TOKEN?myName:(players[token]&&players[token].name)||'';
+  const st=JSON.parse(JSON.stringify(G)); let res;
+  const a=m.a, s=m.s|0;
+  switch(a){
+    case 'sit': if(st.phase!=='lobby'){res='La partida ja ha començat.';break;}
+      if(st.seats[s]&&st.seats[s]!==token){res='Eixe seient ja està ocupat.';break;}
+      st.seats[s]=token; st.nicks[s]=String(name).slice(0,18); res=st; break;
+    case 'stand': if(st.phase!=='lobby'||st.seats[s]!==token){res='Ara no pots alçar-te.';break;}
+      st.seats[s]=null; st.nicks[s]=''; res=st; break;
+    case 'cfg': if(st.phase!=='lobby'){res='Només es pot canviar abans de començar.';break;}
+      if(m.k==='pedres'&&[12,24].includes(m.v))st.cfg.pedres=m.v; if(m.k==='cames'&&[1,2].includes(m.v))st.cfg.cames=m.v; res=st; break;
+    case 'start': if(st.phase!=='lobby'){res='La partida ja ha començat.';break;}
+      if(st.seats.some(x=>!x)){res='Falten jugadors per seure.';break;}
+      st.score={p:[0,0],c:[0,0]}; st.dealer=rint(4); res=startHand(st); break;
+    case 'next': res=st.phase==='handEnd'?startHand(st):'La mà encara no ha acabat.'; break;
+    case 'newgame': if(st.phase!=='gameEnd'){res='La partida encara no ha acabat.';break;} st.score={p:[0,0],c:[0,0]}; res=startHand(st); break;
+    case 'lobby': if(!st.seats.includes(token)){res='Només ho pot fer qui està assegut.';break;}
+      st.phase='lobby';st.hand=null;st.shout=null;st.score={p:[0,0],c:[0,0]};st.winner=null;res=st;break;
+    default:
+      if(!owns(token,s)){res='Eixe seient no és teu.';break;}
+      if(a==='play')res=playCard(st,s,String(m.c));
+      else if(a==='truc')res=callTruc(st,s);
+      else if(a==='envit')res=callEnvit(st,s,m.l===3?3:1);
+      else if(a==='resp')res=respond(st,s,m.r,m.x);
+      else res='Acció desconeguda.';
+  }
+  if(typeof res==='string'){if(['sit','stand','cfg','lobby','start','next','newgame'].includes(a)||res)sendTo(token,{t:'err',msg:res});return;}
+  if(['sit','stand'].includes(a)&&players[token])players[token].name=name;
+  G=res; G.v=(G.v||0)+1; broadcast();
+}
+function startHost(resume){
+  mode='host'; connMsg='Obrint la taula…'; render();
+  if(resume){G=resume.G; code=resume.code; for(const k in (resume.names||{}))players[k]={name:resume.names[k],open:false,conn:null};}
+  else{G=freshGame(); code=rcode();}
+  openHostPeer(0);
+  try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{});}catch(e){}
+}
+function openHostPeer(tries){
+  try{peer&&peer.destroy();}catch(e){}
+  try{peer=new Peer(PREFIX+code);}catch(err){connMsg='No es pot obrir la connexió en aquest navegador: '+(err&&err.message||err);render();return;}
+  peer.on('open',()=>{connMsg='';broadcast();});
+  peer.on('connection',c=>{
+    c.on('data',m=>{
+      if(m&&m.t==='hello'){
+        const tk=String(m.token||'').slice(0,40); if(!tk||tk===HOST_TOKEN)return;
+        const old=players[tk]; if(old&&old.conn&&old.conn!==c){try{old.conn.close();}catch(e){}}
+        players[tk]={conn:c,open:true,name:String(m.name||'').slice(0,18)};
+        c._tk=tk;
+        G.seats.forEach((u,i)=>{if(u===tk)G.nicks[i]=players[tk].name;});
+        broadcast(); return;
+      }
+      if(c._tk)handle(c._tk,m);
+    });
+    c.on('close',()=>{const p=c._tk&&players[c._tk];if(p&&p.conn===c){p.open=false;broadcast();}});
+    c.on('error',()=>{});
+  });
+  peer.on('disconnected',()=>{try{peer.reconnect();}catch(e){}});
+  peer.on('error',e=>{
+    if(e.type==='unavailable-id'){
+      if(tries<4){connMsg='Recuperant la taula…';render();setTimeout(()=>openHostPeer(tries+1),4000);}
+      else{code=rcode();openHostPeer(0);toast('La taula anterior no estava lliure. He obert una taula nova amb un altre codi.');}
+    }else if(e.type==='network'||e.type==='server-error'||e.type==='socket-error'){
+      connMsg='Sense connexió amb el servidor. Reintentant…';render();setTimeout(()=>openHostPeer(tries),4000);
+    }
+  });
+}
+/* ---------- CONVIDAT ---------- */
+function myToken(){
+  const k='truc-token:'+code+':'+myName.toLowerCase();
+  let t=ls.get(k); if(!t){t=rid()+rid();ls.set(k,t);} return t;
+}
+function startClient(){
+  mode='client'; connMsg='Connectant amb la taula '+code+'…'; render();
+  try{peer&&peer.destroy();}catch(e){}
+  try{peer=new Peer();}catch(err){connMsg='No es pot obrir la connexió en aquest navegador: '+(err&&err.message||err);render();return;}
+  peer.on('open',connectToHost);
+  peer.on('disconnected',()=>{try{peer.reconnect();}catch(e){}});
+  peer.on('error',e=>{
+    if(e.type==='peer-unavailable'){connMsg=`No trobe la taula ${code}. Comprova el codi i que l'amfitrió tinga l'app oberta. Reintentant…`;render();scheduleRetry();}
+    else if(e.type==='network'||e.type==='server-error'||e.type==='socket-error'){connMsg='Sense connexió. Reintentant…';render();scheduleRetry();}
+  });
+  try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{});}catch(e){}
+}
+function scheduleRetry(){clearTimeout(retryTimer);retryTimer=setTimeout(()=>{if(peer&&!peer.destroyed&&!peer.disconnected)connectToHost();else startClient();},3500);}
+function connectToHost(){
+  try{conn&&conn.close();}catch(e){}
+  conn=peer.connect(PREFIX+code,{reliable:true});
+  conn.on('open',()=>{connMsg='';conn.send({t:'hello',token:myToken(),name:myName});render();});
+  conn.on('data',m=>{
+    if(!m)return;
+    if(m.t==='state')onView(m.st);
+    else if(m.t==='err')toast(m.msg);
+    else if(m.t==='sign')showSign(m);
+  });
+  conn.on('close',()=>{connMsg='S\'ha perdut la connexió. Reconnectant…';render();scheduleRetry();});
+  conn.on('error',()=>{});
+}
+function send(m){
+  if(mode==='host'){handle(HOST_TOKEN,m);return;}
+  if(conn&&conn.open){try{conn.send(m);}catch(e){toast('No s\'ha pogut enviar. Torna-ho a provar.');}}
+  else toast('Ara mateix no hi ha connexió amb la taula.');
+}
+
+/* ---------- comú ---------- */
+function onView(st){
+  state=st;
+  const sh=st&&st.shout;
+  if(sh&&lastShoutN!==null&&sh.n!==lastShoutN){bubble={seat:sh.seat,text:sh.text};const n=sh.n;setTimeout(()=>{if(bubble&&lastShoutN===n){bubble=null;render();}},2600);}
+  lastShoutN=sh?sh.n:0;
+  if(sheet==='signs'&&!(st&&st.phase==='playing'))sheet=null;
+  render();
+}
+function showSign(m){
+  const me=meSeat(); if(me<0||m.from!==(me+2)%4)return;
+  const sg=SIGNS.find(s=>s.k===m.k); if(sg)toast(`Senya de ${nameOf(m.from)}: ${sg.g} ${sg.t}`,'sig');
+}
+function mySeats(){return state&&state.mine?state.mine:[];}
+function meSeat(){
+  const ms=mySeats(); if(!ms.length)return -1; if(ms.length===1)return ms[0];
+  const h=state.hand;
+  if(h&&state.phase==='playing'){
+    if(h.pending){const r=ms.find(s=>team(s)!==h.pending.by);if(r!=null)return r;}
+    if(ms.includes(h.turn))return h.turn;
+  }
+  return ms[0];
+}
+function nameOf(s){return (state&&state.nicks&&state.nicks[s])||('Seient '+(s+1));}
+const doPlay=c=>send({t:'act',a:'play',s:meSeat(),c});
+const doTruc=()=>send({t:'act',a:'truc',s:meSeat()});
+const doEnvit=l=>send({t:'act',a:'envit',s:meSeat(),l});
+const doResp=(r,x)=>send({t:'act',a:'resp',s:meSeat(),r,x});
+function sendSign(k){sheet=null;render();const me=meSeat();if(me<0)return;send({t:'sign',seat:me,k});toast('Senya enviada al company');}
+
+/* ---------- render ---------- */
+function rel(s,base){return (s-base+4)%4;}
+const POS=['bot','right','top','left'], SLOT=['b','r','t','l'];
+function teamLabel(t,base){return base<0?(t===0?'Parella A':'Parella B'):(t===team(base)?'Nosaltres':'Ells');}
+function teamCls(t,base){const b=base<0?0:base;return t===team(b)?'us':'them';}
+
+function scoreHTML(base){
+  const st=state, P=st?st.cfg.pedres:12, sc=st?st.score:{p:[0,0],c:[0,0]}, C=st?st.cfg.cames:2;
+  const b=base<0?0:base, order=[team(b),1-team(b)];
+  return `<div class="score"><div class="teams">${order.map(t=>{
+    const cls=teamCls(t,base); let st1='';
+    for(let i=0;i<P;i++)st1+=`<span class="stone ${i<sc.p[t]?'on '+cls:''} ${P===24&&i===12?'gap':''}"></span>`;
+    const half=P===24?`<small>${sc.p[t]>=12?'bones':'males'}</small>`:'';
+    return `<div class="trow"><span class="tname ${cls}">${teamLabel(t,base)}</span><span class="stones" aria-label="${sc.p[t]} de ${P} pedres">${st1}</span><span class="tnum">${sc.p[t]}${half}<small>· ${sc.c[t]}/${C} c.</small></span></div>`;
+  }).join('')}</div><button class="iconbtn" data-a="menu" aria-label="Menú">Menú</button></div>`;
+}
+function seatHTML(s,base,h){
+  const r=rel(s,base<0?0:base), pos=POS[r], st=state;
+  const cls=teamCls(team(s),base), isTurn=h&&st.phase==='playing'&&h.turn===s&&!h.pending;
+  let backs='';
+  if(r!==0&&h){const n=(h.cards[s]||[]).length;backs=`<div class="backs">${Array.from({length:n},()=>cardHTML(null,'xs')).join('')}</div>`;}
+  const badges=[]; if(h&&h.ma===s)badges.push('Mà'); if(h&&st.dealer===s)badges.push('Reparteix'); if(isTurn)badges.push('Li toca');
+  if(st.seats[s]&&st.online&&!st.online[s])badges.push('Desconnectat');
+  const bub=bubble&&bubble.seat===s?`<div class="bubble">${esc(bubble.text)}</div>`:'';
+  return `<div class="seat ${pos} ${isTurn?'turn':''}">${bub}<div class="tag"><span class="dot ${cls}"></span><span class="nm">${esc(nameOf(s))}${r===0&&base>=0?' (tu)':''}</span></div>${backs}<div class="badges">${badges.map(b=>`<span class="badge ${b==='Desconnectat'?'off':''}">${b}</span>`).join('')}</div></div>`;
+}
+function midHTML(base,h){
+  if(!h)return `<div class="mid"></div>`;
+  const b=base<0?0:base;
+  let tr=h.tricks[h.tricks.length-1], dim=false;
+  if(!tr.plays.length&&h.tricks.length>1){tr=h.tricks[h.tricks.length-2];dim=true;}
+  const slots=tr.plays.map(p=>`<div class="slot ${SLOT[rel(p.seat,b)]} ${dim?'dim':''} ${(dim||state.phase!=='playing')&&tr.best===p.seat&&tr.res!=='p'?'win':''}">${cardHTML(p.card,'sm')}</div>`).join('');
+  const pips=[0,1,2].map(i=>{const r=h.results[i];if(r==null)return '<span class="pip"></span>';if(r==='p')return '<span class="pip p" title="Parda"></span>';return `<span class="pip ${teamCls(r,base)}"></span>`;}).join('');
+  const stakes=[h.truc.level?TRUC[h.truc.level]+' vist':'Sense trucar'];
+  if(h.envit.state==='accepted')stakes.push(ENV[h.envit.level]+' vist'); else if(h.envit.state==='refused')stakes.push('Envit rebutjat');
+  return `<div class="mid">${slots}<div class="pips">${pips}</div><div class="stakes">${stakes.join(' · ')}</div></div>`;
+}
+function actionsFor(me,h){
+  const A=[]; let status='';
+  if(!h||state.phase!=='playing')return {A,status};
+  const p=h.pending;
+  if(me<0){status=p?`${esc(nameOf(p.seat))} ha cantat <b>${p.kind==='truc'?TRUC[p.level]:ENV[p.level]}</b>`:`Torn de ${esc(nameOf(h.turn))}`;return {A,status};}
+  const T=team(me);
+  if(p){
+    const what=p.kind==='truc'?TRUC[p.level]:ENV[p.level];
+    if(p.by!==T){
+      status=`${esc(nameOf(p.seat))} diu <b>${what}</b>. Què respons?`;
+      A.push({l:'Vull',c:'btn',f:()=>doResp('vull')},{l:'No vull',c:'btn no',f:()=>doResp('novull')});
+      if(p.kind==='truc'&&p.level<4)A.push({l:TRUC[p.level+1],c:'btn call',f:()=>doResp('raise')});
+      if(p.kind==='envit'){if(p.level<2)A.push({l:'Torne',c:'btn call',f:()=>doResp('raise',2)});if(p.level<3)A.push({l:'Falta',c:'btn call',f:()=>doResp('raise',3)});}
+      if(p.kind==='truc'&&p.level===1&&!h.saved&&canEnvit(h,me))A.push({l:'Envide',c:'btn call',f:()=>doResp('envit',1)},{l:'La falta',c:'btn call',f:()=>doResp('envit',3)});
+    }else status=`${p.seat===me?'Has':esc(nameOf(p.seat))+' ha'} cantat <b>${what}</b>. Esperant resposta…`;
+    return {A,status};
+  }
+  if(h.turn===me){
+    status='<b>Et toca.</b> Tira una carta o aposta.';
+    if(canTruc(h,me))A.push({l:TRUC[h.truc.level+1],c:'btn call',f:doTruc});
+    if(canEnvit(h,me))A.push({l:'Envide',c:'btn call',f:()=>doEnvit(1)},{l:'La falta',c:'btn call',f:()=>doEnvit(3)});
+  }else status=`Torn de ${esc(nameOf(h.turn))}`;
+  return {A,status};
+}
+function joinLink(){return location.href.split('#')[0]+'#'+code;}
+
+function startHTML(){
+  const saved=(()=>{try{return JSON.parse(ls.get('truc-host')||'null');}catch(e){return null;}})();
+  const hashCode=(location.hash||'').replace('#','').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,5);
+  return `<div class="startpg"><div class="hero"><h1>Truc</h1><p>Taula de truc valencià per a quatre. Sense comptes: un jugador obri la taula i els altres s'hi uneixen amb el codi.</p></div>
+  <div class="sheet startsheet" role="dialog">
+    <label class="f">El teu nom<input class="t" id="nm" maxlength="18" placeholder="Per exemple: Vicent" autocomplete="off" value="${esc(myName)}"></label>
+    <h3>Unir-me a una taula</h3>
+    <div class="row"><input class="t" id="cd" maxlength="5" placeholder="Codi" autocomplete="off" style="text-transform:uppercase;width:7em;letter-spacing:.15em" value="${esc(hashCode)}"><button class="btn call" data-a="join">Entrar</button></div>
+    <h3>O obrir una taula nova</h3>
+    <div class="row"><button class="btn" data-a="host">Obrir taula</button>${saved&&saved.code?`<button class="btn no" data-a="resume">Recuperar la taula ${esc(saved.code)}</button>`:''}</div>
+    <p class="note" style="margin-top:14px">Qui obri la taula ha de mantindre l'app oberta fins al final: la partida viu al seu mòbil. Si se li tanca, pot tornar ací i prémer «Recuperar la taula».</p>
+  </div></div>`;
+}
+
+let curActions=[];
+function render(){
+  const app=$('#app');
+  if(mode==='start'){app.innerHTML=startHTML();const n=$('#nm');if(n)n.oninput=e=>{myName=e.target.value;};return;}
+  if(!state){app.innerHTML=`<div class="empty"><h1>Truc</h1><p>${esc(connMsg||'Connectant…')}</p><p><button class="btn no" data-a="leave" style="color:var(--chalk)">Tornar a l'inici</button></p></div>`;return;}
+  const st=state, h=st.hand&&st.phase!=='lobby'?st.hand:null, me=meSeat(), base=me;
+  const {A,status}=actionsFor(me,h); curActions=A;
+  const canPlay=h&&st.phase==='playing'&&me>=0&&h.turn===me&&!h.pending;
+  const myCards=h&&me>=0?(h.cards[me]||[]).filter(Boolean):[];
+  const multi=mySeats().length>1&&h;
+  let html=`<div class="wrap" style="display:flex;flex-direction:column;height:100%">${scoreHTML(base)}
+  ${connMsg?`<div class="conn">${esc(connMsg)}</div>`:''}
+  <div class="table">${[0,1,2,3].map(s=>seatHTML(s,base,h)).join('')}${midHTML(base,h)}</div>
+  <div class="dock">
+    <div class="status">${multi?`Jugues com a <b>${esc(nameOf(me))}</b>. `:''}${status||(st.phase==='lobby'?'Seieu a la taula per a començar.':'')}</div>
+    <div class="actions">${A.map((a,i)=>`<button class="${a.c}" data-a="act" data-i="${i}">${a.l}</button>`).join('')}${h&&st.phase==='playing'&&me>=0&&st.seats[(me+2)%4]?`<button class="btn ghost" data-a="signs">Senya</button>`:''}</div>
+    <div class="myhand ${canPlay?'live':''}">${myCards.map(c=>`<button class="cardbtn" data-a="play" data-c="${c}" ${canPlay?'':'disabled'} aria-label="Tirar">${cardHTML(c)}</button>`).join('')}</div>
+  </div>${sheetHTML(me,h)}</div>`;
+  app.innerHTML=html;
+  const c1=$('#cfgP'); if(c1)c1.onchange=e=>send({t:'act',a:'cfg',k:'pedres',v:+e.target.value});
+  const c2=$('#cfgC'); if(c2)c2.onchange=e=>send({t:'act',a:'cfg',k:'cames',v:+e.target.value});
+}
+function lobbyHTML(){
+  const st=state, ms=mySeats(), full=st.seats.every(Boolean);
+  const slot=s=>{
+    const u=st.seats[s], mine=ms.includes(s);
+    const right=u?(mine?`<button class="btn no" data-a="stand" data-s="${s}">Alçar-me</button>`:''):`<button class="btn" data-a="sit" data-s="${s}">Seure</button>`;
+    return `<div class="sl"><span class="nm ${u?'':'free'}">${u?esc(nameOf(s))+(mine?' (tu)':'')+(st.online&&!st.online[s]?' · desconnectat':''):'Lliure'}</span>${right}</div>`;
+  };
+  return `<h2>Taula ${esc(code)}</h2>
+  <div class="invite"><span class="code">${esc(code)}</span><div class="row"><button class="btn" data-a="copy">Copiar enllaç</button>${navigator.share?'<button class="btn no" data-a="share">Compartir</button>':''}</div></div>
+  <p class="linktxt">${esc(joinLink())}</p>
+  <div class="seats">
+    <div class="pair"><h4><span class="dot us"></span>Parella A</h4>${slot(0)}${slot(2)}</div>
+    <div class="pair"><h4><span class="dot them"></span>Parella B</h4>${slot(1)}${slot(3)}</div>
+  </div>
+  <h3>Regles de la partida</h3>
+  <div class="row">
+    <label class="f">Pedres per cama<select class="t" id="cfgP"><option value="12" ${st.cfg.pedres===12?'selected':''}>12</option><option value="24" ${st.cfg.pedres===24?'selected':''}>24 (males i bones)</option></select></label>
+    <label class="f">Cames per guanyar<select class="t" id="cfgC"><option value="1" ${st.cfg.cames===1?'selected':''}>1</option><option value="2" ${st.cfg.cames===2?'selected':''}>2 (al millor de 3)</option></select></label>
+  </div>
+  <div class="row" style="margin-top:14px"><button class="btn call" data-a="start" ${full&&ms.length?'':'disabled'}>Repartir</button><button class="btn no" data-a="rules">Regles</button></div>
+  <p class="note" style="margin-top:12px">${mode==='host'?'Has obert la taula: mantín l\'app oberta durant tota la partida. ':''}Els companys seuen de cara. Per a provar-la tu sol, pots ocupar més d'un seient.</p>`;
+}
+function summaryHTML(base){
+  const st=state,h=st.hand,s=h.summary;
+  const tl=t=>teamLabel(t,base), lines=[];
+  if(s.env){const e=s.env;lines.push(`<div class="sline"><span>${e.accepted?ENV[e.level]+' vist':ENV[e.level]+' rebutjat'} → ${tl(e.team)}${e.accepted?' ('+esc(nameOf(e.seat))+' amb '+e.vals[e.seat]+')':''}</span><b>+${e.pts}</b></div>`);}
+  if(s.trucApplied)lines.push(`<div class="sline"><span>${s.trucRefused?'Truc rebutjat':(s.trucLevel?TRUC[s.trucLevel]+' guanyat':'Mà guanyada')} → ${tl(s.handTeam)}</span><b>+${s.trucPts}</b></div>`);
+  else lines.push(`<div class="sline"><span>La cama s'ha decidit amb l'envit</span><b>—</b></div>`);
+  const head=st.phase==='gameEnd'?`Partida per a ${tl(st.winner)}!`:s.cama!==null?`Cama per a ${tl(s.cama)}!`:`Mà per a ${tl(s.handTeam)}`;
+  const order=[0,1,2,3].map(i=>(h.ma+i)%4);
+  const rv=order.map(x=>{const d=h.dealt[x]||[];return `<div class="rv"><div class="who"><span>${esc(nameOf(x))}</span><span>envit ${d.length?envitOf(d):'–'}</span></div><div class="cs">${d.map(c=>cardHTML(c,'xs')).join('')}</div></div>`;}).join('');
+  const btn=st.phase==='gameEnd'?`<button class="btn call" data-a="newgame">Nova partida</button>`:`<button class="btn call" data-a="next">Següent mà</button>`;
+  return `<h2>${head}</h2><div class="summary">${lines.join('')}</div><h3>Les cartes de tots</h3><div class="reveal">${rv}</div><div class="row" style="margin-top:14px">${mySeats().length?btn:''}</div>`;
+}
+function rulesHTML(){
+  const ord=['1e','1b','7e','7o','3o','7c','6o','5o','4o'];
+  const lbl=['Amo','Bastot','Manilla d\'espases','Manilla d\'oros','Tresos','Sets de copes i bastos','Sisos','Cincs','Quatres'];
+  return `<h2>Regles ràpides</h2>
+  <p>Es juga amb 22 cartes: del 3 al 7 de cada pal, més l'as d'espases i l'as de bastos. Tres cartes per jugador; guanya la mà la parella que fa dues de les tres bazes.</p>
+  <h3>Valor de les cartes</h3>
+  <div class="order">${ord.map((c,i)=>`<span title="${lbl[i]}">${cardHTML(c,'xs')}</span>${i<ord.length-1?'<span class="gt">›</span>':''}`).join('')}</div>
+  <p>${lbl.join(' › ')}. Les cartes del mateix rang fan parda.</p>
+  <h3>Envit</h3>
+  <p>Es canta en la primera baza, abans de tirar la teua carta. Compta dues cartes del mateix pal més 20 (l'as val 1); si no en tens, la carta més alta. Màxim 33. En cas d'empat guanya qui està més prop de la mà.</p>
+  <p>Envit 2 pedres (rebutjat 1) · Torne 4 (rebutjat 2) · Falta: les pedres que li falten a qui va guanyant per a tancar la cama.</p>
+  <h3>Truc</h3>
+  <p>Truc 2 (rebutjat 1) · Retruc 3 (rebutjat 2) · Quatre val 4 (rebutjat 3) · Joc fora: la cama sencera (rebutjat 4). Sense trucar, la mà val 1. Només pot tornar a pujar la parella que ha dit «vull». Si et truquen en la primera baza i encara no has tirat, pots contestar amb l'envit: l'envit va primer.</p>
+  <h3>Pardes</h3>
+  <p>Parda en la primera: guanya qui faça la segona. Primera guanyada i segona parda: guanya qui va fer la primera. Tres pardes: guanya la parella de la mà.</p>
+  <h3>Senyes</h3>
+  <p>El botó Senya envia un gest que només veu el teu company.</p>
+  <div class="row" style="margin-top:12px"><button class="btn" data-a="close">Tancar</button></div>`;
+}
+function sheetHTML(me,h){
+  const st=state; let inner='';
+  if(sheet==='rules')inner=rulesHTML();
+  else if(sheet==='signs')inner=`<h2>Fer una senya</h2><p>Només la veurà ${esc(nameOf((me+2)%4))}.</p><div class="signs">${SIGNS.map(s=>`<button class="sign" data-a="sign" data-k="${s.k}"><span class="g">${s.g}</span><span class="t1">${s.t}</span><span class="t2">${s.d}</span></button>`).join('')}</div><div class="row" style="margin-top:12px"><button class="btn no" data-a="close">Cancel·lar</button></div>`;
+  else if(sheet==='menu')inner=`<h2>Menú</h2><p>Taula <b>${esc(code)}</b>${mode==='host'?' · l\'has oberta tu':''}</p><div class="row" style="margin-top:10px"><button class="btn" data-a="rules">Regles ràpides</button><button class="btn no" data-a="copy">Copiar enllaç</button>${st.phase!=='lobby'&&mySeats().length?`<button class="btn no" data-a="lobbyask">Tornar a la sala</button>`:''}<button class="btn no" data-a="leaveask">Eixir de la taula</button><button class="btn no" data-a="close">Tancar</button></div>`;
+  else if(sheet==='lobbyask')inner=`<h2>Tornar a la sala?</h2><p>Es perd la partida en curs i el marcador torna a zero. Els seients es mantenen.</p><div class="row" style="margin-top:12px"><button class="btn call" data-a="lobby">Sí, tornar a la sala</button><button class="btn no" data-a="close">Cancel·lar</button></div>`;
+  else if(sheet==='leaveask')inner=`<h2>Eixir de la taula?</h2><p>${mode==='host'?'Has obert tu la taula: si n\'ixes, la partida es para per a tots. Podràs recuperar-la des de l\'inici.':'Podràs tornar a entrar amb el mateix nom i codi.'}</p><div class="row" style="margin-top:12px"><button class="btn call" data-a="leave">Sí, eixir</button><button class="btn no" data-a="close">Cancel·lar</button></div>`;
+  if(inner)return `<div class="shade" data-a="close"></div><div class="sheet" role="dialog">${inner}</div>`;
+  if(st.phase==='lobby')return `<div class="sheet" role="dialog">${lobbyHTML()}</div>`;
+  if((st.phase==='handEnd'||st.phase==='gameEnd')&&st.hand&&st.hand.summary)return `<div class="sheet" role="dialog">${summaryHTML(me)}</div>`;
+  return '';
+}
+function leave(){
+  sheet=null; clearTimeout(retryTimer);
+  try{conn&&conn.close();}catch(e){} try{peer&&peer.destroy();}catch(e){}
+  conn=null;peer=null;state=null;G=null;players={};mode='start';connMsg='';
+  try{history.replaceState(null,'',location.href.split('#')[0]);}catch(err){} render();
+}
+function needName(){
+  myName=($('#nm')?$('#nm').value:myName).trim().slice(0,18);
+  if(!myName){toast('Escriu el teu nom per a entrar.');return false;}
+  ls.set('truc-name',myName);return true;
+}
+async function copyLink(){
+  const l=joinLink();
+  try{await navigator.clipboard.writeText(l);toast('Enllaç copiat');}catch(e){toast('Copia l\'enllaç que apareix davall del codi.');}
+}
+
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-a]'); if(!el)return;
+  const a=el.dataset.a, me=meSeat();
+  if(a==='act'){const x=curActions[+el.dataset.i];if(x)x.f();}
+  else if(a==='play')doPlay(el.dataset.c);
+  else if(['sit','stand'].includes(a))send({t:'act',a,s:+el.dataset.s});
+  else if(['start','next','newgame'].includes(a))send({t:'act',a,s:me});
+  else if(a==='lobby'){sheet=null;send({t:'act',a:'lobby',s:me});}
+  else if(a==='sign')sendSign(el.dataset.k);
+  else if(a==='join'){
+    if(!needName())return; code=($('#cd').value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(code.length<4){toast('Escriu el codi de la taula.');return;}
+    try{history.replaceState(null,'',location.href.split('#')[0]+'#'+code);}catch(err){} startClient();
+  }
+  else if(a==='host'){if(!needName())return;startHost(null);}
+  else if(a==='resume'){if(!needName())return;try{startHost(JSON.parse(ls.get('truc-host')));}catch(err){toast('No s\'ha pogut recuperar la taula.');}}
+  else if(a==='copy')copyLink();
+  else if(a==='share'){navigator.share({title:'Truc',text:'Vine a jugar al truc! Codi '+code,url:joinLink()}).catch(()=>{});}
+  else if(a==='leave'){if(mode==='host')ls.set('truc-host',JSON.stringify({code,G,names:Object.fromEntries(Object.entries(players).map(([k,v])=>[k,v.name]))}));leave();}
+  else if(a==='close'){sheet=null;render();}
+  else if(['menu','rules','signs','lobbyask','leaveask'].includes(a)){sheet=a;render();}
+});
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&mode!=='start'){try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{});}catch(e){}
+    if(mode==='client'&&(!conn||!conn.open))scheduleRetry();
+    if(peer&&peer.disconnected&&!peer.destroyed){try{peer.reconnect();}catch(e){}}}
+});
+const WEB=/^https?:$/.test(location.protocol);
+if(!WEB){window.__trucErr("Aquesta app s'ha d'obrir des d'una adreça web (https://...). Des de la vista prèvia o com a fitxer no pot connectar amb els altres mòbils. Puja el fitxer a una web (per exemple GitHub Pages o Netlify) i obri'l des d'allà.");}
+else if(typeof Peer==='undefined'){document.getElementById('app').innerHTML='<div class="empty"><h1>Truc</h1><p>No s\'ha pogut carregar el mòdul de connexió. Comprova que tens internet i torna a carregar la pàgina.</p></div>';}
+else{window.__trucReady=true;render();}
+
+</script>
+
+
+</body>
+</html>
